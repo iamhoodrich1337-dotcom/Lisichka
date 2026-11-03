@@ -150,7 +150,7 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
   <section class="screen" id="levels">
     <div class="top"><button class="back" data-go="map">← Миры</button><div class="pills"><span class="pill">💎 <span class="w-cr">0</span></span></div></div>
     <h2 class="title" id="lv-title"></h2>
-    <p class="note">Три звезды: пройти уровень, собрать 80% кристаллов и успеть за время. Зелёные треугольники ▲ спрятаны высоко.</p>
+    <p class="note">Три звезды: добежать до норки, собрать 80% кристаллов и найти все три зелёных треугольника ▲. Они спрятаны высоко. Никуда не спеши 💖</p>
     <div class="lv-grid" id="lv-grid"></div>
   </section>
 
@@ -175,7 +175,7 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
     <canvas id="cv-play"></canvas>
     <div class="hud">
       <button id="b-pause" aria-label="Пауза">❚❚</button>
-      <span id="h-cr">◆ 0/0</span><span id="h-gm">▲ 0/3</span><span class="sp"></span><span id="h-t">0.0</span>
+      <span id="h-cr">◆ 0/0</span><span id="h-gm">▲ 0/3</span><span class="sp"></span>
     </div>
   </section>
 </div>
@@ -188,8 +188,9 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
    Лисья тропа — версия и список изменений
    При обновлениях ключ сохранения НЕ меняется, прогресс остаётся.
    ========================================================= */
-const VERSION = '1.0';
+const VERSION = '1.1';
 const CHANGELOG = {
+  '1.1': 'Больше никакого таймера: бегай в своём темпе. Третья звезда теперь за все три треугольника ▲, а вместо скорости появилась Удача: она даёт больше кристаллов за уровень.',
   '1.0': 'Первая версия: семья лисят с именами, 4 мира и 32 уровня, прокачка, больше 100 нарядов и подарки каждый день.'
 };
 const SAVE_KEY = 'lisichka-world';
@@ -281,7 +282,7 @@ for (const k in FURS) CATALOG.push({ id: 'fur:' + k, slot: 'fur', name: FURS[k][
 const ITEM = Object.fromEntries(CATALOG.map(i => [i.id, i]));
 
 /* ---------- сохранение ---------- */
-function defaultSave(){ return { v:1, crystals:60, foxes:[], active:0, owned:{ 'fur:ryzh': true }, levels:{},
+function defaultSave(){ return { v:2, crystals:60, foxes:[], active:0, owned:{ 'fur:ryzh': true }, levels:{},
   daily:{ last:'', streak:0 }, stats:{ runs:0, crystals:0 }, seen:'' }; }
 function migrate(d){
   const b = defaultSave(), s = { ...b, ...d };
@@ -291,6 +292,8 @@ function migrate(d){
     look:{ fur:'fur:ryzh', hat:null, face:null, neck:null, ...(f.look || {}) },
     up:{ speed:0, jump:0, magnet:0, ...(f.up || {}) } }));
   if (s.active >= s.foxes.length) s.active = 0;
+  if ((d.v || 1) < 2){ for (const k in s.levels){ const r = s.levels[k]; r.m = (r.m || 0) & 3; if ((r.g || 0) === 7) r.m |= 4; } }
+  s.v = 2;
   return s;
 }
 let S = defaultSave();
@@ -438,7 +441,7 @@ const lvOf = xp => Math.min(15, Math.floor(Math.sqrt(xp / 40)) + 1);
 const xpFor = n => 40 * (n - 1) * (n - 1);
 const upCost = l => Math.round(30 * Math.pow(l + 1, 1.6) / 5) * 5;
 const ADOPT = [0, 300, 900, 1800, 3000];
-const UPS = [['speed','Скорость','быстрее бежит'],['jump','Прыжок','прыгает выше'],['magnet','Магнит','притягивает кристаллы']];
+const UPS = [['speed','Удача','+10% кристаллов за уровень'],['jump','Прыжок','прыгает выше'],['magnet','Магнит','притягивает кристаллы']];
 const lkey = (w, l) => w + '-' + l;
 function totalStars(){ let n = 0; for (const k in S.levels) n += bits(S.levels[k].m || 0); return n; }
 function worldStats(wi){ let st = 0, gm = 0; for (let l = 0; l < LPW; l++){ const r = S.levels[lkey(wi, l)]; if (r){ st += bits(r.m || 0); gm += bits(r.g || 0); } } return { st, gm }; }
@@ -550,7 +553,7 @@ function renderLevels(){
     const r = S.levels[lkey(curWorld, l)] || {}, prev = l === 0 || ((S.levels[lkey(curWorld, l - 1)] || {}).m & 1);
     const b = document.createElement('button'); b.className = 'lv'; b.disabled = !prev;
     const m = r.m || 0;
-    b.innerHTML = prev ? `<span class="n">${l + 1}</span><span class="s">${'★'.repeat(bits(m))}${'☆'.repeat(3 - bits(m))}</span><span class="g">▲ ${bits(r.g || 0)}/3${r.t ? ' · ' + r.t.toFixed(1) + 'с' : ''}</span>`
+    b.innerHTML = prev ? `<span class="n">${l + 1}</span><span class="s">${'★'.repeat(bits(m))}${'☆'.repeat(3 - bits(m))}</span><span class="g">▲ ${bits(r.g || 0)}/3</span>`
       : `<span class="n">🔒</span><span class="g">${l + 1}</span>`;
     b.onclick = () => startLevel(curWorld, l);
     g.appendChild(b);
@@ -707,7 +710,7 @@ function startLevel(wi, li){
 }
 function runLevel(wi, li){
   const cv = $('#cv-play'), W = WORLDS[wi], fox = curFox(), up = fox.up;
-  const SPEED = 260 + up.speed * 12, JUMP = 620 + up.jump * 18, MAG = up.magnet, GRAV = 2000, HW = 14;
+  const SPEED = 260, LUCK = up.speed, JUMP = 620 + up.jump * 18, MAG = up.magnet, GRAV = 2000, HW = 14;
   const L = genLevel(wi, li);
   let C = setupCanvas(cv), Z = zoom();
   function zoom(){ return Math.min(C.w / 620, C.h / 400); }
@@ -832,7 +835,7 @@ function runLevel(wi, li){
     if (!st.started){ ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(0, C.h * .3, C.w, 96); ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
       ctx.font = '800 24px ui-rounded,system-ui,sans-serif'; ctx.fillText(`${W.name} · уровень ${li + 1}`, C.w / 2, C.h * .3 + 32);
       ctx.font = '600 16px ui-rounded,system-ui,sans-serif'; ctx.fillText('Нажми, чтобы бежать. Держи дольше, чтобы прыгнуть выше', C.w / 2, C.h * .3 + 66); }
-    $('#h-cr').textContent = `◆ ${st.got}/${tot}`; $('#h-gm').textContent = `▲ ${bits(st.gemMask)}/3`; $('#h-t').textContent = st.time.toFixed(1);
+    $('#h-cr').textContent = `◆ ${st.got}/${tot}`; $('#h-gm').textContent = `▲ ${bits(st.gemMask)}/3`;
   }
   let raf, last = performance.now();
   function loop(now){
@@ -854,12 +857,12 @@ function runLevel(wi, li){
 
   function finishLevel(){
     const key = lkey(wi, li), rec = S.levels[key] || { m:0, g:0, t:0 };
-    let mask = 1; if (st.got >= Math.ceil(tot * .8)) mask |= 2; if (st.time <= L.target) mask |= 4;
+    let mask = 1; if (st.got >= Math.ceil(tot * .8)) mask |= 2; if (((rec.g | st.gemMask) & 7) === 7) mask |= 4;
     const newStars = mask & ~rec.m, newGems = st.gemMask & ~rec.g;
     const bonus = bits(newStars) * 20 + bits(newGems) * 25 + 10;
-    const earned = st.got + bonus, xp = 20 + bits(mask) * 10 + bits(st.gemMask) * 5;
-    const prevLv = lvOf(fox.xp), oldTs = totalStars(), recTime = !rec.t || st.time < rec.t;
-    rec.m |= mask; rec.g |= st.gemMask; if (recTime) rec.t = Math.round(st.time * 10) / 10; S.levels[key] = rec;
+    const earned = Math.round((st.got + bonus) * (1 + LUCK * .1)), xp = 20 + bits(mask) * 10 + bits(st.gemMask) * 5;
+    const prevLv = lvOf(fox.xp), oldTs = totalStars();
+    rec.m |= mask; rec.g |= st.gemMask; S.levels[key] = rec;
     S.crystals += earned; fox.xp += xp; S.stats.runs++; S.stats.crystals += st.got;
     const nowLv = lvOf(fox.xp), ts = totalStars();
     const opened = WORLDS.filter(W2 => W2.need > oldTs && W2.need <= ts);
@@ -868,11 +871,11 @@ function runLevel(wi, li){
     modal(`<div class="big">${'⭐'.repeat(bits(mask))}${'<span style="opacity:.25">⭐</span>'.repeat(3 - bits(mask))}</div>
       <h2>Уровень пройден!</h2>
       <div class="crit"><p>${mask & 1 ? '✅' : '▫️'} Добежать до норки</p><p>${mask & 2 ? '✅' : '▫️'} Кристаллы: ${st.got}/${tot} (нужно ${Math.ceil(tot * .8)})</p>
-      <p>${mask & 4 ? '✅' : '▫️'} Время: ${st.time.toFixed(1)} с (нужно ${L.target} с)${recTime && rec.t ? ' · рекорд!' : ''}</p><p>▲ Треугольники: ${bits(st.gemMask)}/3</p></div>
+      <p>${mask & 4 ? '✅' : '▫️'} Все треугольники ▲: ${bits(rec.g)}/3${st.gemMask ? ` (в этот раз ${bits(st.gemMask)})` : ''}</p></div>
       <p class="earn">+${earned} 💎 &nbsp; +${xp} опыта</p>
       ${nowLv > prevLv ? `<p class="hl">🎉 ${esc(fox.name)} теперь ${nowLv} уровня! Можно прокачаться в «Семье».</p>` : ''}
       ${opened.map(o => `<p class="hl">🗺 Открыт новый мир: ${o.name}!</p>`).join('')}
-      ${!(mask & 4) && up.speed < 10 ? `<p style="font-size:.85rem">Не успеваешь по времени? Прокачай скорость в «Семье».</p>` : ''}
+      ${!(mask & 4) && up.jump < 10 ? `<p style="font-size:.85rem">Треугольники спрятаны высоко. Прокачай прыжок в «Семье», и до них будет легче достать.</p>` : ''}
       <p class="love">${pick(LOVE)}</p>
       <div class="btns"><button class="btn alt" id="r-lv">Уровни</button><button class="btn alt" id="r-re">Ещё раз</button>${nextOk ? '<button class="btn main" id="r-nx">Дальше</button>' : ''}</div>`, {
       'r-lv': () => { closeModal(); stop(); show('levels'); },
