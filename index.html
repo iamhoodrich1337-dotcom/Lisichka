@@ -120,6 +120,23 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
 .sus button{border:2px solid var(--line);background:var(--bg);border-radius:16px;padding:10px 12px;text-align:left;display:flex;gap:10px;align-items:center}
 .sus button span{font-size:1.8rem}
 .sus button small{display:block;color:var(--muted)}
+.story-btn{background:linear-gradient(135deg,#2a1f52,#6a3fa0);margin-top:0}
+.scene{position:relative;height:320px;border-radius:24px;overflow:hidden;margin:6px 0 10px}
+.so{position:absolute;transform:translate(-50%,-50%);border:none;background:rgba(255,255,255,.2);border-radius:50%;width:56px;height:56px;font-size:2rem;animation:bob 3s ease-in-out infinite;padding:0}
+.so.seen{background:rgba(120,255,170,.4)}
+@keyframes bob{50%{transform:translate(-50%,-58%)}}
+.kw{background:#ffe08a;color:#3a2418;border-radius:6px;padding:0 4px;font-weight:800}
+.sent{line-height:2.2;color:var(--ink)!important}
+.bl{font:inherit;font-size:.95rem;padding:4px;border-radius:8px;border:2px solid var(--fox);background:var(--bg);color:var(--ink);max-width:100%}
+.cine{background:#0d0b14;color:#efe6d6;border-radius:20px;padding:20px 18px;text-align:left;line-height:1.6;border-top:10px solid #000;border-bottom:10px solid #000}
+.cine h2{color:#ffcf7a;text-align:center;margin:6px 0 10px}.cine small{display:block;text-align:center;letter-spacing:3px;opacity:.6;font-size:.7rem}.cine p{color:#efe6d6!important}
+.pads{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.pad{aspect-ratio:1;border:none;border-radius:28px;font-size:2.6rem;opacity:.5;transition:opacity .1s,transform .1s}
+.pad.lit{opacity:1;transform:scale(1.06)}
+.snd{border:none;font:inherit;font-weight:800}
+#splash{position:fixed;inset:0;background:#07060c;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f3e7cf;animation:spl 3.2s forwards}
+#splash b{font-size:2rem;letter-spacing:8px;margin-top:8px}#splash small{letter-spacing:4px;opacity:.7;margin-top:6px}
+@keyframes spl{0%,75%{opacity:1}100%{opacity:0;visibility:hidden}}
 #pv{width:100%;height:240px;display:block;border-radius:24px}
 .code{font-size:1.3rem;letter-spacing:3px;color:var(--fox-deep)}
 .code-in{width:100%;font:inherit;font-size:1.4rem;letter-spacing:4px;text-transform:uppercase;text-align:center;padding:14px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);margin-top:10px;-webkit-user-select:text;user-select:text}
@@ -154,23 +171,26 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
 </style>
 </head>
 <body>
+<div id="splash" onclick="this.remove()"><span style="font-size:3.2rem">🦊</span><b>FOXWOOD</b><small>STUDIOS представляет</small></div>
 <div class="app">
 
   <section class="screen active" id="home">
     <div class="top">
       <h1>Лисья тропа</h1>
-      <div class="pills"><span class="pill">💎 <span class="w-cr">0</span></span></div>
+      <div class="pills"><button class="pill snd" id="b-snd">🔊</button><span class="pill">💎 <span class="w-cr">0</span></span></div>
     </div>
     <p class="hello" id="hello"></p>
     <canvas id="den" aria-label="Норка лисьей семьи"></canvas>
     <button class="play-btn" id="b-play">Бежать по тропе</button>
+    <button class="play-btn story-btn" id="b-story">🌙 Сюжет: Тайна Лунного камня</button>
     <div class="tiles">
       <button class="tile" id="b-family"><span class="e">🦊</span>Семья</button>
       <button class="tile" id="b-ward"><span class="e">🎀</span>Гардероб</button>
       <button class="tile" id="b-house"><span class="e">🏡</span>Домик<span class="dot" id="house-dot" hidden></span></button>
       <button class="tile" id="b-hunt"><span class="e">🦋</span>Охота и задания<span class="dot" id="hunt-dot" hidden></span></button>
       <button class="tile" id="b-together"><span class="e">💞</span>Вдвоём<span class="dot" id="net-dot" hidden></span></button>
-      <button class="tile" id="b-cases"><span class="e">🔍</span>Детектив</button>
+      <button class="tile" id="b-cases"><span class="e">🔍</span>Быстрые дела</button>
+      <button class="tile" id="b-simon"><span class="e">🐾</span>Лисья память</button>
       <button class="tile" id="b-gift"><span class="e">🎁</span>Подарок дня<span class="dot" id="gift-dot" hidden></span></button>
       <button class="tile" id="b-set"><span class="e">💾</span>Сохранение</button>
     </div>
@@ -234,6 +254,19 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
     <div id="tg-body"></div>
   </section>
 
+  <section class="screen" id="story">
+    <div class="top"><button class="back" data-go="home">← Норка</button><span class="pill" id="st-count"></span></div>
+    <div id="story-body"></div>
+  </section>
+
+  <section class="screen" id="simon">
+    <div class="top"><button class="back" data-go="home">← Норка</button><span class="pill" id="sm-info"></span></div>
+    <h2 class="title">Лисья память</h2>
+    <p class="note">Лисичка показывает, по каким следам идти. Запомни и повтори. Каждый раунд след длиннее, а лисичка всё быстрее.</p>
+    <div class="pads"><button class="pad" style="background:#ff7aa8">🐾</button><button class="pad" style="background:#4cc9a7">🐾</button><button class="pad" style="background:#5aa9f0">🐾</button><button class="pad" style="background:#ffcf3f">🐾</button></div>
+    <button class="play-btn" id="sm-go">Начать</button>
+  </section>
+
   <section class="screen" id="cases">
     <div class="top"><button class="back" data-go="home">← Норка</button><div class="pills"><span class="pill">💎 <span class="w-cr">0</span></span></div></div>
     <h2 class="title">Лисичка-детектив</h2>
@@ -273,8 +306,9 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
    Лисья тропа — версия и список изменений
    При обновлениях ключ сохранения НЕ меняется, прогресс остаётся.
    ========================================================= */
-const VERSION = '2.2';
+const VERSION = '3.0';
 const CHANGELOG = {
+  '3.0': 'Большое обновление от FOXWOOD STUDIOS! Сюжет «Тайна Лунного камня» из трёх глав с настоящими детективными загадками. Новая игра «Лисья память». Охота стала сложнее: пчёлы жалят, у охоты появились уровни. Быстрые дела стали труднее. И теперь в игре есть музыка и звуки (кнопка 🔊).',
   '2.2': 'Теперь лисят можно оставлять дома, чтобы они не бегали в забегах, или отпустить из семьи совсем.',
   '2.1': 'Теперь можно играть вдвоём! Раздел «Вдвоём»: ходите в гости друг к другу в норку, дарите кристаллы, наряды и сердечки, пишите записочки и выполняйте общее задание дня. Лисичка половинки бегает вместе с вашей семьёй, а прогресс сохраняется в облаке.',
   '2.0': 'Большое обновление! 5 новых миров и бонусная Кристальная пещера, обувь для лисят (наушники убрали, за них вернули кристаллы), охота с заданиями, детективные дела, прокачка домика и мебель в норке. Новые лисята теперь маленькие, а треугольники светятся и их видно издалека.',
@@ -605,13 +639,14 @@ function closeModal(){ $('#modal').classList.remove('show'); }
 /* ---------- экраны ---------- */
 let curScreen = 'home', denC = null, wprevC = null, curWorld = 0;
 function show(id){
-  curScreen = id; document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  curScreen = id; music(SONG_OF[id] || 'home'); document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
   window.scrollTo(0, 0); refreshWallet();
   if (id === 'home'){ denC = setupCanvas($('#den')); $('#gift-dot').hidden = S.daily.last === todayStr();
     $('#hello').textContent = `Привет, ${pick(PETS).toLowerCase()}! 💖`; $('#house-dot').hidden = bankNow() < 20; $('#hunt-dot').hidden = !tasksReady(); }
   if (id === 'house') renderHouse();
   if (id === 'hunt') renderHunt();
   if (id === 'cases') renderCases();
+  if (id === 'story') renderStory();
   if (id === 'together') renderTogether();
   if (id === 'map') renderMap();
   if (id === 'levels') renderLevels();
@@ -907,7 +942,7 @@ function runLevel(wi, li){
 
   function press(e){ if (e) e.preventDefault(); if (st.paused || st.done) return;
     st.started = true; st.holding = true;
-    if (st.ground || st.coyote > 0){ st.vy = -JUMP; st.holdT = .22; st.ground = false; st.coyote = 0; st.jumps = 1; puff(st.x, st.y, 4); }
+    if (st.ground || st.coyote > 0){ st.vy = -JUMP; st.holdT = .22; sfx('jump'); st.ground = false; st.coyote = 0; st.jumps = 1; puff(st.x, st.y, 4); }
     else if (st.jumps < 2){ st.vy = -JUMP * .95; st.holdT = .15; st.jumps = 2; puff(st.x, st.y - 10, 5); } }
   function release(){ st.holding = false; }
   const kd = e => { if (e.code === 'Space' || e.code === 'ArrowUp'){ if (!e.repeat) press(e); } };
@@ -915,7 +950,7 @@ function runLevel(wi, li){
   cv.addEventListener('pointerdown', press); window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
   function puff(x, y, n){ for (let i = 0; i < n; i++) dust.push({ x: x - 6 + Math.random() * 12, y: y - 2, vx: -30 - Math.random() * 60, vy: -15 - Math.random() * 30, a: .9, r: 4 + Math.random() * 4 }); }
-  function respawn(){ hist.length = 0; let cp = L.cps[0]; for (const c of L.cps) if (c.x <= st.x + 1) cp = c;
+  function respawn(){ hist.length = 0; sfx('bad'); let cp = L.cps[0]; for (const c of L.cps) if (c.x <= st.x + 1) cp = c;
     st.x = cp.x; st.y = cp.y; st.vy = 0; st.jumps = 0; st.ground = true; st.falls++; st.flash = .45; fx.push({ x: cp.x, y: cp.y - 70, txt: 'ой!', a: 1 }); }
   function land(p){ if (st.jumps > 0 || st.vy > 500) puff(st.x, st.y, 5); st.vy = 0; st.ground = true; st.jumps = 0; st.coyote = .1;
     if (p) for (const b of L.bouncers) if (Math.abs(st.x - b.x) < 24 && p.top === b.y){ st.vy = -1080; st.ground = false; st.jumps = 1; b.sq = .25; } }
@@ -944,13 +979,13 @@ function runLevel(wi, li){
     const cy = st.y - 22;
     for (const c of L.crystals){ if (c.got) continue; const dx = c.x - st.x, dy = c.y - cy, d = Math.hypot(dx, dy);
       if (MAG > 0 && d < 60 + MAG * 18 && d > 1){ c.x -= dx / d * 520 * dt; c.y -= dy / d * 520 * dt; }
-      if (d < 24 + MAG * 2){ c.got = true; st.got++; c.pop = 1; } }
-    L.gems.forEach((gm, i) => { if (!(st.gemMask >> i & 1) && Math.hypot(gm.x - st.x, gm.y - cy) < 30){ st.gemMask |= 1 << i; fx.push({ x: gm.x, y: gm.y - 20, txt: '▲ ура!', a: 1, c: '#3ddc84' }); } });
+      if (d < 24 + MAG * 2){ c.got = true; st.got++; c.pop = 1; sfx('coin'); } }
+    L.gems.forEach((gm, i) => { if (!(st.gemMask >> i & 1) && Math.hypot(gm.x - st.x, gm.y - cy) < 30){ st.gemMask |= 1 << i; sfx('win'); fx.push({ x: gm.x, y: gm.y - 20, txt: '▲ ура!', a: 1, c: '#3ddc84' }); } });
     for (let i = 0; i < L.cps.length; i++) if (st.x >= L.cps[i].x && i > st.cp){ st.cp = i; fx.push({ x: L.cps[i].x, y: L.cps[i].y - 90, txt: 'Точка!', a: 1, c: '#fff' }); }
     if (st.x >= L.finish){ st.done = true; }
     rec();
     crew.forEach((_, k) => { const q = crewPos(k), qy = q.y - 14;
-      for (const c of L.crystals) if (!c.got && Math.abs(c.x - q.x) < 22 && Math.abs(c.y - qy) < 22){ c.got = true; st.got++; c.pop = 1; } });
+      for (const c of L.crystals) if (!c.got && Math.abs(c.x - q.x) < 22 && Math.abs(c.y - qy) < 22){ c.got = true; st.got++; c.pop = 1; sfx('coin'); } });
   }
 
   function drawGem(ctx, gm, i){
@@ -1258,26 +1293,26 @@ let HUNT = null;
 $('#b-hunt-go').onclick = () => { if (HUNT) HUNT.stop(); HUNT = runHunt(); };
 function runHunt(){
   closeModal(); show('hunt-play');
-  const cv = $('#cv-hunt'); let C = setupCanvas(cv); const fox = curFox(), GOAL = 15;
+  const cv = $('#cv-hunt'); let C = setupCanvas(cv); const fox = curFox(), HL = S.huntLvl || 1, GOAL = 20 + HL * 5, SPD = 1 + HL * .18; let lives = 3, failed = false, combo = 0;
   let bugs = [], caught = 0, gold = 0, t = 0, spawn = 0, jump = null, fx = [], raf, last = performance.now(), done = false, doneT = 0;
   const cols = ['#ff7aa8','#5aa9f0','#a98be8','#ffcf3f','#4cc9a7','#ff9c5a'];
   const home = () => ({ x: C.w / 2, y: C.h - 24 });
-  const upd = () => $('#hh-c').textContent = `🦋 ${caught}/${GOAL}`; upd();
+  const upd = () => $('#hh-c').textContent = `Охота ${HL} · 🦋 ${caught}/${GOAL} · ${'❤️'.repeat(lives)}${'🤍'.repeat(3 - lives)}`; upd();
   function add(){ const side = Math.random() < .5, r = Math.random();
-    bugs.push({ x: side ? -20 : C.w + 20, y: 90 + Math.random() * (C.h * .5), vx: (side ? 1 : -1) * (35 + Math.random() * 45), ph: Math.random() * 6, c: pick(cols), type: r < .12 ? 'gold' : r < .25 ? 'bee' : 'fly' }); }
+    bugs.push({ x: side ? -20 : C.w + 20, y: 90 + Math.random() * (C.h * .5), vx: (side ? 1 : -1) * (55 + Math.random() * 70) * SPD, ph: Math.random() * 6, c: pick(cols), type: r < .08 ? 'gold' : r < Math.min(.5, .3 + HL * .02) ? 'bee' : 'fly' }); }
   function tap(e){ e.preventDefault(); if (done) return; const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    let best = null, bd = 44; for (const b of bugs){ if (b.gone) continue; const d = Math.hypot(b.x - x, b.y - y); if (d < bd){ bd = d; best = b; } }
-    if (!best) return;
-    if (best.type === 'bee'){ fx.push({ x: best.x, y: best.y - 20, txt: 'Ой, пчёлка! 🐝', a: 1 }); best.vx *= 2.5; return; }
-    best.gone = true; caught++; if (best.type === 'gold') gold++;
+    let best = null, bd = 34; for (const b of bugs){ if (b.gone) continue; const d = Math.hypot(b.x - x, b.y - y); if (d < bd){ bd = d; best = b; } }
+    if (!best){ combo = 0; return; }
+    if (best.type === 'bee'){ best.gone = true; lives--; combo = 0; caught = Math.max(0, caught - 3); sfx('bad'); fx.push({ x: best.x, y: best.y - 20, txt: 'Ай! Пчёлка ужалила −3', a: 1 }); upd(); if (lives <= 0){ done = true; failed = true; } return; }
+    best.gone = true; caught++; combo++; sfx('coin'); if (combo % 6 === 0){ caught++; fx.push({ x: best.x, y: best.y - 40, txt: 'Комбо! +1', a: 1 }); } if (best.type === 'gold') gold++;
     jump = { tx: best.x, ty: best.y, t: 0 }; fx.push({ x: best.x, y: best.y - 16, txt: best.type === 'gold' ? '+3 ✨' : '+1', a: 1 });
     for (let i = 0; i < 10; i++){ const a = Math.random() * 6.28; fx.push({ x: best.x, y: best.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, a: 1, dot: best.type === 'gold' ? '#ffd34d' : best.c }); }
     upd(); if (caught >= GOAL) done = true; }
   cv.addEventListener('pointerdown', tap);
   function loop(now){
     const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; spawn -= dt;
-    if (spawn <= 0 && bugs.filter(b => !b.gone).length < 5){ add(); spawn = .5 + Math.random() * .7; }
-    for (const b of bugs){ b.x += b.vx * dt; b.y += Math.sin(t * 2 + b.ph) * 40 * dt; }
+    if (spawn <= 0 && bugs.filter(b => !b.gone).length < 5){ add(); spawn = .35 + Math.random() * .5; }
+    for (const b of bugs){ b.x += b.vx * dt; b.y += Math.sin(t * (2 + HL * .3) + b.ph) * (70 + HL * 8) * dt; b.y = Math.max(70, Math.min(C.h - 60, b.y)); }
     bugs = bugs.filter(b => !b.gone && b.x > -40 && b.x < C.w + 40);
     const { ctx, w, h } = C, W = WORLDS[5];
     const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#9fd8ff'); g.addColorStop(1, '#fff3fa'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
@@ -1299,14 +1334,14 @@ function runHunt(){
     for (const p of fx){ if (p.dot){ p.x += p.vx * dt; p.y += p.vy * dt; p.a -= dt * 1.8; ctx.globalAlpha = Math.max(0, p.a); ctx.fillStyle = p.dot; ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, 7); ctx.fill(); }
       else { p.y -= 30 * dt; p.a -= dt * .9; ctx.globalAlpha = Math.max(0, p.a); ctx.fillStyle = '#7a3a5a'; ctx.fillText(p.txt, p.x, p.y); } }
     ctx.globalAlpha = 1; fx = fx.filter(p => p.a > 0);
-    if (t < 3){ ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, h * .25, w, 60); ctx.fillStyle = '#fff'; ctx.font = '700 18px ui-rounded,system-ui,sans-serif'; ctx.fillText(`Нажимай на бабочек! Поймай ${GOAL}. Золотые дают больше`, w / 2, h * .25 + 36); }
+    if (t < 3){ ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, h * .25, w, 60); ctx.fillStyle = '#fff'; ctx.font = '700 18px ui-rounded,system-ui,sans-serif'; ctx.fillText(`Поймай ${GOAL} бабочек. Пчёл не трогай — жалят! 3 сердечка`, w / 2, h * .25 + 36); }
     if (done){ doneT += dt; if (doneT > .7){ finish(); return; } }
     raf = requestAnimationFrame(loop);
   }
   function finish(){
-    const earned = Math.round((caught + gold * 2 + 5) * (1 + fox.up.speed * .1));
-    S.crystals += earned; S.stats.bugs += caught; S.stats.hunts++; persist();
-    modal(`<div class="big">🦋</div><h2>Удачная охота!</h2><p>Поймано бабочек: ${caught}${gold ? `, из них золотых: ${gold}` : ''}</p><p class="earn">+${earned} 💎</p><p class="love">${love()}</p>
+    const earned = failed ? Math.round(caught * .5) : Math.round((caught + gold * 3 + HL * 10) * (1 + fox.up.speed * .1));
+    S.crystals += earned; S.stats.bugs += caught; S.stats.hunts++; if (!failed) S.huntLvl = HL + 1; persist(); sfx(failed ? 'bad' : 'win');
+    modal(`<div class="big">${failed ? '🐝' : '🦋'}</div><h2>${failed ? 'Пчёлы прогнали лисичку' : `Охота ${HL} пройдена!`}</h2>${failed ? '' : `<p>Следующая охота будет сложнее: ${GOAL + 5} бабочек</p>`}<p>Поймано бабочек: ${caught}${gold ? `, из них золотых: ${gold}` : ''}</p><p class="earn">+${earned} 💎</p><p class="love">${love()}</p>
       <div class="btns"><button class="btn alt" id="hn-x">Назад</button><button class="btn main" id="hn-re">Ещё охота</button></div>`,
       { 'hn-x': () => { closeModal(); stop(); show('hunt'); }, 'hn-re': () => { stop(); HUNT = runHunt(); } });
   }
@@ -1405,11 +1440,11 @@ function renderCases(){
 let caseC = null, CS = null;
 function openCase(c){
   const R = rng(c.id.length * 97 + c.title.length * 13 + Math.floor(Math.random() * 1000));
-  const dec = shuffle(DECOYS.filter(e => !c.clues.some(k => k.e === e)), R).slice(0, 13);
+  const dec = shuffle(DECOYS.filter(e => !c.clues.some(k => k.e === e)), R).slice(0, 20);
   const objs = shuffle([...c.clues.map((k, i) => ({ e: k.e, clue: i })), ...dec.map(e => ({ e, clue: -1 }))], R);
   CS = { c, objs, found: [], shake: 0 };
   show('case'); caseC = setupCanvas($('#cv-case'));
-  const { w, h } = caseC, cols = 4, rows = Math.ceil(objs.length / cols);
+  const { w, h } = caseC, cols = 5, rows = Math.ceil(objs.length / cols);
   objs.forEach((o, i) => { const cx = i % cols, cy = Math.floor(i / cols);
     o.x = (cx + .5) / cols * w + (R() - .5) * w / cols * .4; o.y = 40 + (cy + .5) / rows * (h - 60) + (R() - .5) * 18; o.s = 0; });
   $('#c-title').textContent = c.title; $('#c-intro').textContent = c.intro; updCase();
@@ -1429,11 +1464,11 @@ function drawCase(t){
   for (const o of CS.objs){ const sh = o.s > 0 ? Math.sin(o.s * 60) * 5 : 0; o.s = Math.max(0, o.s - 1 / 60);
     const found = o.clue >= 0 && CS.found.includes(o.clue);
     if (found){ ctx.fillStyle = 'rgba(80,220,130,.35)'; ctx.beginPath(); ctx.arc(o.x, o.y, 26, 0, 7); ctx.fill(); ctx.strokeStyle = '#22b060'; ctx.lineWidth = 3; ctx.stroke(); }
-    emo(ctx, o.e, o.x + sh, o.y, 34); }
+    emo(ctx, o.e, o.x + sh, o.y, 26); }
 }
 $('#cv-case').addEventListener('pointerdown', e => {
   if (!CS) return; const r = $('#cv-case').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  let best = null, bd = 30; for (const o of CS.objs){ const d = Math.hypot(o.x - x, o.y - y); if (d < bd){ bd = d; best = o; } }
+  let best = null, bd = 22; for (const o of CS.objs){ const d = Math.hypot(o.x - x, o.y - y); if (d < bd){ bd = d; best = o; } }
   if (!best) return;
   if (best.clue >= 0 && !CS.found.includes(best.clue)){ CS.found.push(best.clue); updCase(); toast(`Улика: ${CS.c.clues[best.clue].n}!`); }
   else if (best.clue < 0) best.s = .25;
@@ -1442,7 +1477,7 @@ $('#c-solve').onclick = () => {
   const c = CS.c, sus = typeof c.sus === 'function' ? c.sus() : c.sus;
   modal(`<div class="big">🔍</div><h2>Кто виноват?</h2><p>Перечитай блокнот и выбери подозреваемого.</p><div class="sus">${sus.map((s, i) => `<button data-s="${i}"><span>${s.e}</span><div><b>${esc(s.n)}</b><small>${s.d}</small></div></button>`).join('')}</div>`);
   document.querySelectorAll('.sus button').forEach(b => b.onclick = () => {
-    if (+b.dataset.s !== c.ans){ b.style.opacity = .4; b.disabled = true; toast('Хм, не сходится. Перечитай улики 🤔'); return; }
+    if (+b.dataset.s !== c.ans){ sfx('bad'); closeModal(); toast('Неверно! Улики спутались, дело начинается заново 😿'); openCase(c); return; }
     const first = !S.cases[c.id], r = first ? 80 : 15; S.cases[c.id] = true; S.stats.cases++; S.crystals += r; persist(); refreshWallet();
     modal(`<div class="big">🕵️‍♀️</div><h2>Дело раскрыто!</h2><p>${c.why}</p><p class="earn">+${r} 💎</p><p class="love">${love()}</p><div class="btns"><button class="btn main" id="cs-ok">К делам</button></div>`,
       { 'cs-ok': () => { closeModal(); show('cases'); } });
@@ -1601,6 +1636,149 @@ function renderTogether(){
   if (!claimed && sum >= ct.n) $('#tg-coop').onclick = () => { S.crystals += ct.r; persist(); refreshWallet(); NET.base.child('coop/' + todayStr() + '/claimed/' + S.net.pid).set(true); toast(`+${ct.r} 💎 · Вместе вы сила 💞`); };
 }
 $('#b-together').onclick = () => show('together');
+
+/* =========================================================
+   МУЗЫКА И ЗВУКИ (своя мелодия, без файлов)
+   ========================================================= */
+const AU = { ctx:null, song:null, want:'home', timer:null, step:0, next:0, seed:1 };
+function au(){ if (!AU.ctx){ try { AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); AU.master = AU.ctx.createGain(); AU.master.gain.value = .35; AU.master.connect(AU.ctx.destination); } catch(e){ return null; } }
+  if (AU.ctx.state === 'suspended') AU.ctx.resume(); return AU.ctx; }
+function tone(f, t, d, type = 'triangle', v = .2){ const c = AU.ctx; if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g); g.connect(AU.master); o.start(t); o.stop(t + d + .05); }
+const mf = n => 440 * Math.pow(2, (n - 69) / 12);
+const SONGS = { home:{ bpm:84, root:62, sc:[0,2,4,7,9], ch:[0,9,5,7], tri:[0,4,7], w:'triangle' }, run:{ bpm:122, root:64, sc:[0,2,4,7,9], ch:[0,5,9,7], tri:[0,4,7], w:'square' },
+  hunt:{ bpm:104, root:67, sc:[0,2,4,7,9], ch:[0,5,7,5], tri:[0,4,7], w:'triangle' }, mystery:{ bpm:66, root:57, sc:[0,3,5,7,10], ch:[0,8,5,7], tri:[0,3,7], w:'sine' } };
+const SONG_OF = { play:'run', 'hunt-play':'hunt', cases:'mystery', case:'mystery', story:'mystery', simon:'hunt' };
+function music(name){ AU.want = name; if (S.mute || !AU.ctx || AU.song === name) return; AU.song = name; AU.step = 0; AU.next = AU.ctx.currentTime + .1; AU.seed = name.length * 7 + 3; clearInterval(AU.timer); AU.timer = setInterval(sched, 100); }
+function sched(){ const c = AU.ctx, M = SONGS[AU.song]; if (!M) return; const st = 60 / M.bpm / 2;
+  while (AU.next < c.currentTime + .4){ const k = AU.step, chord = M.ch[Math.floor(k / 8) % 4];
+    if (k % 8 === 0){ M.tri.forEach(d => tone(mf(M.root - 12 + chord + d), AU.next, st * 8, 'sine', .045)); tone(mf(M.root - 24 + chord), AU.next, st * 4, 'triangle', .12); }
+    if (hsh(k % 64, AU.seed) > .3){ const deg = Math.floor(hsh(k % 32, AU.seed + 1) * M.sc.length), oct = hsh(k % 16, AU.seed + 2) > .7 ? 12 : 0;
+      tone(mf(M.root + M.sc[deg] + oct), AU.next, st * 1.6, M.w, M.w === 'square' ? .035 : .08); }
+    AU.next += st; AU.step++; } }
+function sfx(k){ if (S.mute || !au()) return; const t = AU.ctx.currentTime;
+  if (k === 'coin'){ tone(1319, t, .1, 'square', .04); tone(1760, t + .05, .14, 'square', .04); }
+  if (k === 'jump') tone(523, t, .12, 'triangle', .07);
+  if (k === 'win') [523, 659, 784, 1047].forEach((f, i) => tone(f, t + i * .09, .3, 'triangle', .12));
+  if (k === 'bad'){ tone(220, t, .25, 'sawtooth', .05); tone(165, t + .12, .3, 'sawtooth', .05); } }
+document.addEventListener('pointerdown', () => { if (!S.mute && au() && !AU.song) music(AU.want); }, true);
+function sndIcon(){ const b = $('#b-snd'); if (b) b.textContent = S.mute ? '🔇' : '🔊'; }
+$('#b-snd').onclick = () => { S.mute = !S.mute; persist(); sndIcon(); if (S.mute){ clearInterval(AU.timer); AU.song = null; } else { au(); music(AU.want); } };
+sndIcon();
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* =========================================================
+   СЮЖЕТ: ТАЙНА ЛУННОГО КАМНЯ
+   ========================================================= */
+const STORY_PRE = 'Каждую осень лисы Лисьего леса зажигают Лунный камень. Он светит всю долгую зиму, и ни один зверёк не мёрзнет в темноте. Но этой осенью камень исчез. Стражи хватают первых попавшихся, а бабушка Рута шепчет: «Это только начало. Найди правду, детка». Ты — лучший детектив Лисьего леса.';
+const STORY = [
+ { id:'s1', e:'🏮', title:'Праздник фонариков', need:0, r:300, gift:'hat:tiara:gold', bg:'linear-gradient(#1b1640,#3e2a6e 60%,#5a3a2a 60%,#3a2418)',
+   cine:'Ночь праздника. Тысяча фонариков над поляной, музыка, запах печёных яблок. Все ждут, когда Лунный камень вспыхнет. Но пьедестал пуст. Стражи уже тащат в клетку Ежа Колючкина. «Он стоял ближе всех!» — кричат они. Бабушка Рута качает головой: «Слишком просто. Осмотри всё».',
+   intro:'Камень пропал с пьедестала во время праздника. Осмотри площадь и восстанови, что произошло.',
+   objs:[ { e:'🏛️', x:50, y:30, t:'Пьедестал. Стеклянный колпак цел, но поднят — его открыли, а не разбили. Открыть колпак можно только одним [ключ].' },
+     { e:'🔑', x:18, y:62, t:'Связка ключей валяется в траве. Это связка сторожа. Он хвастался, что не расстаётся с ней даже во сне — значит, её сняли со спящего.' },
+     { e:'🦉', x:80, y:60, t:'Сторож [Филин Ух] храпит прямо на посту. Рядом кружка: недопитый [ромашковый чай]. После такого чая спят до утра.' },
+     { e:'🫖', x:66, y:80, t:'Чайник. На нём бирка: «Дорогому сторожу от [Енот Шнырь]». Енот никогда ничего не дарит просто так.' },
+     { e:'🪶', x:36, y:42, t:'Чёрно-белое пёрышко у пьедестала. Такие пёрышки только у [Сорока Трещотка].' },
+     { e:'✨', x:62, y:22, t:'Серебряная пыльца от камня. Следы ведут к открытому [окно] сторожки и обрываются в воздухе — вор улетел.' },
+     { e:'🪙', x:84, y:30, t:'На подоконнике монетка с меткой [Енот Шнырь]. Похоже на плату за работу.' },
+     { e:'🦔', x:30, y:80, t:'[Ёж Колючкин] в клетке плачет: весь вечер он продавал яблоки. Его лапки в соке, на них ни пылинки серебра. А ещё он не умеет летать.' },
+     { e:'🧺', x:10, y:35, t:'Корзинка с [колпак] для пирогов — обычный, кухонный. Наверное, просто так тут стоит.' } ],
+   q:['Сторожа {Филин Ух} усыпил {ромашковый чай} — подарок от {Енот Шнырь}.', 'Со спящего сторожа сняли {ключ} и открыли колпак, а камень вынесли через {окно}.', 'Камень унесла {Сорока Трещотка}, а монеткой ей заплатил {Енот Шнырь}.', 'Значит, {Ёж Колючкин} ни в чём не виноват.'],
+   end:'Ежа выпустили, и он угостил всех яблоками. Енота Шныря нашли в его норе, но он только смеялся: «Я всего лишь посредник. Камень уже у Хозяина. Ищите в снегах…» А Сорока Трещотка исчезла без следа.' },
+ { id:'s2', e:'❄️', title:'Следы в снегу', need:12, r:500, gift:'fur:cosmic', bg:'linear-gradient(#8fb0d6,#dfeaf7 55%,#f7fbff 55%,#dce6f2)',
+   cine:'Метель. Сороку Трещотку нашли у зимовья в Снежной долине. Она жива, но спит волшебным сном, и разбудить её никто не может. В её клюве зажат обрывок карты. В зимовье три гостя, и один из них не хотел, чтобы Сорока заговорила.',
+   intro:'Кто усыпил Сороку? Осмотри зимовье и гостей.',
+   objs:[ { e:'🐦', x:50, y:62, t:'Сорока спит волшебным сном. Такой сон наводит только [сонная трава].' },
+     { e:'🗺️', x:22, y:30, t:'Обрывок карты. На нём нарисовано [Лунное озеро] и крестик у старой мельницы.' },
+     { e:'🌿', x:74, y:78, t:'За пёрышком у Сороки — засохший стебелёк. Это сонная трава. Она растёт только на берегу у Лунного озера.' },
+     { e:'👣', x:35, y:82, t:'Следов на свежем снегу нет вовсе — ни к Сороке, ни обратно. Тот, кто приходил, [прилетел].' },
+     { e:'🐰', x:12, y:58, t:'[Зайка Пушинка] весь вечер вязала шарф у камина. Бабушка Рута сидела рядом и всё видела.' },
+     { e:'🦫', x:88, y:56, t:'[Бобр Стройка] пилил дрова во дворе. Летать он не умеет, а следов на снегу нет.' },
+     { e:'🦉', x:80, y:26, t:'[Сова Мудрена], хранительница леса, говорит, что весь вечер спала. Но на её крыле — [серебряная пыльца], как от Лунного камня.' },
+     { e:'🕯️', x:58, y:24, t:'Свеча в окне комнаты Совы погасла только под утро. Значит, ночью она [не спала].' } ],
+   q:['Сороку усыпила {сонная трава} с берега, где {Лунное озеро}.', 'Злодей не оставил следов, потому что он {прилетел}.', '{Зайка Пушинка} и {Бобр Стройка} тут ни при чём.', 'Сова соврала: ночью она {не спала}, а на её крыле {серебряная пыльца}.', 'Сороку усыпила {Сова Мудрена}.'],
+   end:'Сова Мудрена молча взлетела в метель. На её подушке нашли записку: «Вы не понимаете. Этот свет губит лес. Приходите к Лунному озеру — и узнаете правду». Сорока проснулась и всё подтвердила: Сова наняла её через Енота.' },
+ { id:'s3', e:'🌙', title:'Сердце ночи', need:30, r:1000, gift:'hat:halo:gold', bg:'linear-gradient(#0b1430,#22406a 55%,#163a52 55%,#0b2233)',
+   cine:'Лунное озеро. Тишина, только лёд потрескивает. На старой мельнице сидит Сова Мудрена и держит Лунный камень над тёмной водой. «Ещё шаг, — говорит она, — и я брошу его на дно». Почему хранительница леса стала воровкой? У тебя есть время, пока она ждёт.',
+   intro:'Пойми, зачем Сове камень, и найди решение, при котором никто не пострадает.',
+   objs:[ { e:'📜', x:20, y:30, t:'Дневник Совы: «Каждую зиму камень светит всё ярче. Ночные звери больше не могут [спать]».' },
+     { e:'🦉', x:76, y:26, t:'Трое маленьких [совята] жмутся к маме. Они неделю не открывали глаз — свет слепит их, и они болеют.' },
+     { e:'🦇', x:50, y:18, t:'Летучие мыши пищат: с тех пор как камень стал ярче, в лесу пропала настоящая ночь.' },
+     { e:'🪞', x:40, y:66, t:'В воде у берега камень светит мягко и ровно. Вода [приглушает свет], как абажур.' },
+     { e:'🏮', x:16, y:70, t:'Праздничные фонарики можно зажигать от камня. Тогда свет [делится] на всех понемногу, и нигде не слепит.' },
+     { e:'📖', x:84, y:66, t:'Старая книга совета: «Лунный камень должен светить [для всех] — и для дневных зверей, и для ночных». Об этом давно забыли.' },
+     { e:'💎', x:60, y:44, t:'Лунный камень. Если [бросить на дно], он погаснет навсегда, и лес замёрзнет.' },
+     { e:'🪵', x:30, y:44, t:'Старая мельница. Сова прячет здесь гнездо: тут темно и тихо, но совятам всё равно холодно.' } ],
+   q:['Сова украла камень, потому что ночные звери не могли {спать}, а её {совята} болели от яркого света.', 'Нельзя {бросить на дно} камень — лес замёрзнет.', 'Если положить камень у самого берега, вода {приглушает свет}.', 'А зажигая от него фонарики, свет {делится} по всему лесу.', 'Ведь камень должен светить {для всех}.'],
+   end:'Сова опустила крылья и заплакала. Камень положили в воду у самого берега: он засветился мягким серебром, и совята впервые за неделю открыли глаза. От него зажгли тысячу фонариков, и в лесу снова стало тепло. Сову простили и назначили Хранительницей ночи. Конец первой книги… но в Снежной долине уже кто-то шепчет о второй.' }
+];
+let SC = null;
+function stSave(c){ S.story = S.story || {}; return S.story[c.id] = S.story[c.id] || { seen:[], done:false, ans:[] }; }
+const kwords = t => [...t.matchAll(/\[([^\]]+)\]/g)].map(m => m[1]);
+const hl = t => esc(t).replace(/\[([^\]]+)\]/g, '<b class="kw">$1</b>');
+function cine(i){ const c = STORY[i]; modal(`<div class="cine"><small>FOXWOOD · Тайна Лунного камня</small><h2>Глава ${i + 1}. ${c.title}</h2><p>${c.cine}</p></div><div class="btns" style="margin-top:12px"><button class="btn main" id="cn-ok">Начать расследование</button></div>`, { 'cn-ok': closeModal }); }
+function renderStory(){
+  const box = $('#story-body'), ts = totalStars();
+  if (SC === null){
+    $('#st-count').textContent = '🌙 Книга I';
+    box.innerHTML = `<h2 class="title">Тайна Лунного камня</h2><p class="note">${STORY_PRE}</p>` + STORY.map((c, i) => { const sv = stSave(c), lock = ts < c.need || (i && !stSave(STORY[i - 1]).done);
+      return `<button class="case-card" data-i="${i}" ${lock ? 'style="opacity:.55"' : ''}><span class="ce">${c.e}</span><span><b>Глава ${i + 1}. ${c.title}</b><small>${sv.done ? 'Раскрыто ✅' : lock ? `🔒 Пройди прошлую главу и собери ⭐ ${c.need}` : `Награда ${c.r} 💎 и особый наряд`}</small></span></button>`; }).join('') +
+      `<p class="note" style="margin-top:14px">Как играть: осматривай всё на картинке. Важные слова подсвечиваются и попадают в блокнот. Потом заполни пропуски в рассказе о том, что случилось. Если ошибок одна или две, игра скажет сколько. Если больше — не подскажет ничего.</p>`;
+    box.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { const i = +b.dataset.i, c = STORY[i];
+      if (ts < c.need || (i && !stSave(STORY[i - 1]).done)) return toast('Сначала раскрой прошлую главу и собери звёзды в забегах');
+      SC = i; const sv = stSave(c); renderStory(); if (!sv.intro){ sv.intro = 1; persist(); cine(i); } });
+    return; }
+  const c = STORY[SC], sv = stSave(c), bank = [...new Set(sv.seen.flatMap(k => kwords(c.objs[k].t)))].sort();
+  $('#st-count').textContent = `🔍 ${sv.seen.length}/${c.objs.length}`;
+  box.innerHTML = `<button class="back" id="st-back">← Главы</button><h2 class="title" style="margin-top:10px">${c.e} ${c.title}</h2><p class="note">${c.intro}</p>
+    <div class="scene" style="background:${c.bg}">${c.objs.map((o, k) => `<button class="so${sv.seen.includes(k) ? ' seen' : ''}" data-k="${k}" style="left:${o.x}%;top:${o.y}%;animation-delay:${k * .3}s">${o.e}</button>`).join('')}</div>
+    <div class="notebook"><b>Блокнот детектива</b>${sv.seen.length ? sv.seen.map(k => `<p>${c.objs[k].e} ${hl(c.objs[k].t)}</p>`).join('') : '<p>Нажимай на предметы и героев на картинке.</p>'}</div>
+    <div class="notebook"><b>Найденные слова: ${bank.length}</b><p>${bank.map(w => `<span class="kw">${esc(w)}</span>`).join(' ') || '—'}</p></div>
+    <button class="play-btn" id="st-solve" ${bank.length < 3 ? 'disabled' : ''}>${sv.done ? 'Перечитать развязку' : 'Что же случилось?'}</button>`;
+  $('#st-back').onclick = () => { SC = null; renderStory(); };
+  box.querySelectorAll('.so').forEach(b => b.onclick = () => { const k = +b.dataset.k, o = c.objs[k];
+    if (!sv.seen.includes(k)){ sv.seen.push(k); persist(); sfx('coin'); }
+    modal(`<div class="big">${o.e}</div><p style="color:var(--ink);font-size:1.05rem;line-height:1.55">${hl(o.t)}</p><div class="btns" style="margin-top:14px"><button class="btn main" id="so-ok">Записать в блокнот</button></div>`, { 'so-ok': () => { closeModal(); renderStory(); } }); });
+  $('#st-solve').onclick = () => sv.done ? modal(`<div class="cine"><h2>Развязка</h2><p>${c.end}</p></div><div class="btns" style="margin-top:12px"><button class="btn main" id="en-ok">Закрыть</button></div>`, { 'en-ok': closeModal }) : solveStory(c, sv, bank);
+}
+function solveStory(c, sv, bank){
+  let n = 0; const html = c.q.map(s => '<p class="sent">' + esc(s).replace(/\{([^}]+)\}/g, () => `<select class="bl" data-n="${n++}"><option value="">……</option>${bank.map(w => `<option>${esc(w)}</option>`).join('')}</select>`) + '</p>').join('');
+  modal(`<h2>Что же случилось?</h2><div style="text-align:left">${html}</div><div class="btns" style="margin-top:12px"><button class="btn alt" id="sv-x">Ещё поищу</button><button class="btn main" id="sv-ok">Проверить</button></div>`, {
+    'sv-x': closeModal,
+    'sv-ok': () => { const ans = c.q.join(' ').match(/\{([^}]+)\}/g).map(x => x.slice(1, -1)), got = [...document.querySelectorAll('.bl')].map(x => x.value);
+      if (got.includes('')) return toast('Заполни все пропуски');
+      const bad = ans.filter((a, i) => a !== got[i]).length;
+      if (!bad) return winStory(c, sv);
+      sfx('bad'); toast(bad <= 2 ? `Почти! Неверных ответов: ${bad}` : 'Что-то не сходится… Ошибок больше двух'); } });
+  document.querySelectorAll('.bl').forEach((x, i) => { x.value = (sv.ans || [])[i] || ''; x.onchange = () => { sv.ans = [...document.querySelectorAll('.bl')].map(y => y.value); persist(); }; });
+}
+function winStory(c, sv){
+  sv.done = true; S.crystals += c.r; S.owned[c.gift] = true; S.stats.cases++; persist(); refreshWallet(); sfx('win');
+  const it = ITEM[c.gift];
+  modal(`<div class="cine"><small>Дело раскрыто</small><h2>${c.title}</h2><p>${c.end}</p></div><p class="earn">+${c.r} 💎</p><p class="hl">Особый наряд: ${it.name}${it.slot !== 'fur' ? ' (' + it.cname + ')' : ''}</p><p class="love">${love()}</p><div class="btns"><button class="btn main" id="wn-ok">Дальше</button></div>`,
+    { 'wn-ok': () => { closeModal(); SC = null; renderStory(); } });
+}
+$('#b-story').onclick = () => { SC = null; show('story'); };
+
+/* =========================================================
+   ЛИСЬЯ ПАМЯТЬ
+   ========================================================= */
+const PADF = [392, 494, 587, 784]; let SM = null;
+function padOn(i, ms){ const b = document.querySelectorAll('.pad')[i]; b.classList.add('lit'); if (!S.mute && au()) tone(PADF[i], AU.ctx.currentTime, ms / 1000, 'triangle', .3); setTimeout(() => b.classList.remove('lit'), ms * .85); }
+async function smPlay(){ SM.busy = true; const sp = Math.max(200, 620 - SM.seq.length * 28); await wait(600);
+  for (const i of SM.seq){ if (!SM || curScreen !== 'simon') return; padOn(i, sp); await wait(sp + 110); }
+  SM.busy = false; SM.pos = 0; $('#sm-info').textContent = `Раунд ${SM.seq.length} · твоя очередь`; }
+function smNext(){ SM.seq.push(Math.floor(Math.random() * 4)); $('#sm-info').textContent = `Раунд ${SM.seq.length} · смотри`; smPlay(); }
+$('#sm-go').onclick = () => { SM = { seq:[], pos:0, busy:true }; $('#sm-go').disabled = true; smNext(); };
+document.querySelectorAll('.pad').forEach((b, i) => b.onclick = () => {
+  if (!SM || SM.busy) return; padOn(i, 260);
+  if (i !== SM.seq[SM.pos]){ const r = SM.seq.length - 1, earned = r * 5, best = r > (S.simonBest || 0); if (best) S.simonBest = r;
+    S.crystals += earned; persist(); refreshWallet(); sfx('bad'); SM = null; $('#sm-go').disabled = false; $('#sm-info').textContent = `Рекорд: ${S.simonBest || 0}`;
+    modal(`<div class="big">🐾</div><h2>Сбилась на раунде ${r + 1}</h2><p>Запомнено следов: ${r}${best ? ' · новый рекорд! 🎉' : ''}</p><p class="earn">+${earned} 💎</p><p class="love">${love()}</p><div class="btns"><button class="btn main" id="sm-ok">Ещё раз</button></div>`, { 'sm-ok': closeModal }); return; }
+  if (++SM.pos === SM.seq.length){ SM.busy = true; sfx('coin'); setTimeout(smNext, 500); } });
+$('#b-simon').onclick = () => { $('#sm-info').textContent = `Рекорд: ${S.simonBest || 0}`; show('simon'); };
+setTimeout(() => { const s = $('#splash'); if (s) s.remove(); }, 3300);
 
 /* ---------- старт ---------- */
 function boot(){
