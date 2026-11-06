@@ -273,8 +273,9 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
    Лисья тропа — версия и список изменений
    При обновлениях ключ сохранения НЕ меняется, прогресс остаётся.
    ========================================================= */
-const VERSION = '2.1';
+const VERSION = '2.2';
 const CHANGELOG = {
+  '2.2': 'Теперь лисят можно оставлять дома, чтобы они не бегали в забегах, или отпустить из семьи совсем.',
   '2.1': 'Теперь можно играть вдвоём! Раздел «Вдвоём»: ходите в гости друг к другу в норку, дарите кристаллы, наряды и сердечки, пишите записочки и выполняйте общее задание дня. Лисичка половинки бегает вместе с вашей семьёй, а прогресс сохраняется в облаке.',
   '2.0': 'Большое обновление! 5 новых миров и бонусная Кристальная пещера, обувь для лисят (наушники убрали, за них вернули кристаллы), охота с заданиями, детективные дела, прокачка домика и мебель в норке. Новые лисята теперь маленькие, а треугольники светятся и их видно издалека.',
   '1.2': 'Теперь вся семья бегает вместе! Лисята бегут следом за главной лисичкой и помогают собирать кристаллы.',
@@ -732,7 +733,8 @@ function renderFamily(){
       <div class="ups">${UPS.map(([k, n, d]) => { const ul = f.up[k], max = ul >= 10, cap = ul >= lv - 0 && !max;
         return `<div class="up"><span class="ul">${n} ${ul}/10<small>${d}</small></span>
         <button class="sbtn main" data-up="${k}" ${max || ul >= lv ? 'disabled' : ''}>${max ? 'Макс.' : ul >= lv ? `Нужен ур. ${ul + 1}` : `+1 за ${upCost(ul)} 💎`}</button></div>`; }).join('')}</div>
-      <div class="fc-actions"><button class="sbtn" data-act="pick">${i === S.active ? '★ Бежит' : 'Выбрать для забега'}</button><button class="sbtn" data-act="name">Имя</button></div>`;
+      <div class="fc-actions"><button class="sbtn" data-act="pick">${i === S.active ? '★ Бежит' : 'Выбрать для забега'}</button><button class="sbtn" data-act="name">Имя</button></div>
+      ${i !== S.active ? `<div class="fc-actions"><button class="sbtn" data-act="home">${f.home ? '🏡 Сидит дома' : '🏃 Бегает с семьёй'}</button>${S.foxes.length > 1 ? '<button class="sbtn" data-act="del">Отпустить</button>' : ''}</div>` : ''}`;
     list.appendChild(card);
     renderFoxTo(card.querySelector('canvas'), f.look, 'full');
     card.querySelectorAll('[data-up]').forEach(b => b.onclick = () => {
@@ -742,6 +744,12 @@ function renderFamily(){
     });
     card.querySelector('[data-act="pick"]').onclick = () => { S.active = i; persist(); renderFamily(); };
     card.querySelector('[data-act="name"]').onclick = () => askName(f.name, nm => { f.name = nm; persist(); renderFamily(); });
+    const hb = card.querySelector('[data-act="home"]');
+    if (hb) hb.onclick = () => { f.home = !f.home; persist(); renderFamily(); toast(f.home ? `${f.name}: сижу дома 🏡` : `${f.name}: бегу с семьёй 🦊`); };
+    const db2 = card.querySelector('[data-act="del"]');
+    if (db2) db2.onclick = () => modal(`<div class="big">🥺</div><h2>Отпустить ${esc(f.name)}?</h2><p>Лисёнок уйдёт из семьи вместе с прокачкой. Наряды останутся в гардеробе. Вернуть его не получится, но можно взять нового.</p>
+      <div class="btns" style="margin-top:14px"><button class="btn alt" id="dl-x">Оставить</button><button class="btn main" id="dl-ok">Отпустить</button></div>`,
+      { 'dl-x': closeModal, 'dl-ok': () => { const act = S.foxes[S.active]; S.foxes.splice(i, 1); S.active = Math.max(0, S.foxes.indexOf(act)); persist(); closeModal(); renderFamily(); toast(`Пока-пока, ${f.name}! Гуляй по лесу 🌲`); } });
   });
   const n = S.foxes.length, ab = $('#b-adopt');
   if (n >= ADOPT.length){ ab.textContent = 'Вся семья в сборе 💖'; ab.disabled = true; }
@@ -882,7 +890,7 @@ function runLevel(wi, li){
   const starsBg = Array.from({ length: 60 }, (_, i) => [hsh(i, 1), hsh(i, 2) * .6, hsh(i, 3)]);
   const tot = L.crystals.length;
   // семья бежит следом
-  const crew = S.foxes.filter((_, i) => i !== S.active).slice(0, 4);
+  const crew = S.foxes.filter((f, i) => i !== S.active && !f.home).slice(0, 4);
   if (S.net.partner && S.net.partner.fox) crew.push({ name: S.net.partner.fox.name, look: S.net.partner.fox.look, kid: false });
   const hist = [], SPACE = 38;
   const rec = () => { const l = hist[hist.length - 1], d = l ? l.d + Math.hypot(st.x - l.x, st.y - l.y) : 0;
