@@ -120,6 +120,12 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
 .sus button{border:2px solid var(--line);background:var(--bg);border-radius:16px;padding:10px 12px;text-align:left;display:flex;gap:10px;align-items:center}
 .sus button span{font-size:1.8rem}
 .sus button small{display:block;color:var(--muted)}
+#pv{width:100%;height:240px;display:block;border-radius:24px}
+.code{font-size:1.3rem;letter-spacing:3px;color:var(--fox-deep)}
+.code-in{width:100%;font:inherit;font-size:1.4rem;letter-spacing:4px;text-transform:uppercase;text-align:center;padding:14px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);margin-top:10px;-webkit-user-select:text;user-select:text}
+.onl{font-size:.85rem;color:var(--muted);font-weight:700}
+.fly-heart{position:fixed;bottom:-40px;font-size:2rem;z-index:40;pointer-events:none;animation:flyup 2.8s ease-in forwards}
+@keyframes flyup{to{transform:translateY(-110vh) rotate(25deg);opacity:0}}
 #cv-play{width:100%;height:100%;display:block;touch-action:none}
 .hud{position:absolute;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:14px;color:#fff;font-weight:800;font-size:1.05rem;text-shadow:0 1px 3px rgba(0,0,0,.45);pointer-events:none}
 .hud .sp{flex:1}
@@ -163,6 +169,7 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
       <button class="tile" id="b-ward"><span class="e">🎀</span>Гардероб</button>
       <button class="tile" id="b-house"><span class="e">🏡</span>Домик<span class="dot" id="house-dot" hidden></span></button>
       <button class="tile" id="b-hunt"><span class="e">🦋</span>Охота и задания<span class="dot" id="hunt-dot" hidden></span></button>
+      <button class="tile" id="b-together"><span class="e">💞</span>Вдвоём<span class="dot" id="net-dot" hidden></span></button>
       <button class="tile" id="b-cases"><span class="e">🔍</span>Детектив</button>
       <button class="tile" id="b-gift"><span class="e">🎁</span>Подарок дня<span class="dot" id="gift-dot" hidden></span></button>
       <button class="tile" id="b-set"><span class="e">💾</span>Сохранение</button>
@@ -221,6 +228,12 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
     <div id="t-chain"></div>
   </section>
 
+  <section class="screen" id="together">
+    <div class="top"><button class="back" data-go="home">← Норка</button><div class="pills"><span class="pill">💎 <span class="w-cr">0</span></span></div></div>
+    <h2 class="title">Вдвоём 💞</h2>
+    <div id="tg-body"></div>
+  </section>
+
   <section class="screen" id="cases">
     <div class="top"><button class="back" data-go="home">← Норка</button><div class="pills"><span class="pill">💎 <span class="w-cr">0</span></span></div></div>
     <h2 class="title">Лисичка-детектив</h2>
@@ -260,14 +273,17 @@ h2.title{font-size:1.5rem;margin:0 0 4px}
    Лисья тропа — версия и список изменений
    При обновлениях ключ сохранения НЕ меняется, прогресс остаётся.
    ========================================================= */
-const VERSION = '2.0';
+const VERSION = '2.1';
 const CHANGELOG = {
+  '2.1': 'Теперь можно играть вдвоём! Раздел «Вдвоём»: ходите в гости друг к другу в норку, дарите кристаллы, наряды и сердечки, пишите записочки и выполняйте общее задание дня. Лисичка половинки бегает вместе с вашей семьёй, а прогресс сохраняется в облаке.',
   '2.0': 'Большое обновление! 5 новых миров и бонусная Кристальная пещера, обувь для лисят (наушники убрали, за них вернули кристаллы), охота с заданиями, детективные дела, прокачка домика и мебель в норке. Новые лисята теперь маленькие, а треугольники светятся и их видно издалека.',
   '1.2': 'Теперь вся семья бегает вместе! Лисята бегут следом за главной лисичкой и помогают собирать кристаллы.',
   '1.1': 'Больше никакого таймера: бегай в своём темпе. Третья звезда теперь за все три треугольника ▲, а вместо скорости появилась Удача: она даёт больше кристаллов за уровень.',
   '1.0': 'Первая версия: семья лисят с именами, 4 мира и 32 уровня, прокачка, больше 100 нарядов и подарки каждый день.'
 };
 const SAVE_KEY = 'lisichka-world';
+// 🔌 Настройки онлайна (Firebase). Сюда вставляется firebaseConfig. Пока null — онлайн выключен.
+const FIREBASE_CONFIG = null;
 
 // ✏️ Нежные слова — можно дополнять
 const PETS = ['Моя маленькая', 'Моя хорошенькая', 'Моя сладенькая', 'Моя принцессочка', 'Моя женушка', 'Моя кнопочка', 'Моя умничка', 'Моя любовь'];
@@ -365,7 +381,7 @@ const ITEM = Object.fromEntries(CATALOG.map(i => [i.id, i]));
 /* ---------- сохранение ---------- */
 function defaultSave(){ return { v:3, crystals:60, foxes:[], active:0, owned:{ 'fur:ryzh': true, 'f:wallp:0': true, 'f:bed:0': true }, levels:{},
   daily:{ last:'', streak:0 }, stats:{ runs:0, crystals:0, tri:0, bugs:0, hunts:0, cases:0, buys:0 }, seen:'',
-  house:{ lvl:1, last:Date.now(), furn:{ wallp:'f:wallp:0', bed:'f:bed:0' } }, tasks:{ day:'', ids:[], base:{}, done:[] }, chain:{ i:0, base:0 }, cases:{} }; }
+  house:{ lvl:1, last:Date.now(), furn:{ wallp:'f:wallp:0', bed:'f:bed:0' } }, tasks:{ day:'', ids:[], base:{}, done:[] }, chain:{ i:0, base:0 }, cases:{}, net:{ code:'', pid:'', me:'', partner:null, notes:[] } }; }
 function migrate(d){
   const b = defaultSave(), s = { ...b, ...d };
   s.owned = { ...b.owned, ...(d.owned || {}) }; s.daily = { ...b.daily, ...(d.daily || {}) };
@@ -376,7 +392,7 @@ function migrate(d){
   if (s.active >= s.foxes.length) s.active = 0;
   if ((d.v || 1) < 2){ for (const k in s.levels){ const r = s.levels[k]; r.m = (r.m || 0) & 3; if ((r.g || 0) === 7) r.m |= 4; } }
   s.house = { ...b.house, ...(d.house || {}) }; s.house.furn = { ...b.house.furn, ...((d.house || {}).furn || {}) };
-  s.tasks = { ...b.tasks, ...(d.tasks || {}) }; s.chain = { ...b.chain, ...(d.chain || {}) }; s.cases = d.cases || {};
+  s.tasks = { ...b.tasks, ...(d.tasks || {}) }; s.chain = { ...b.chain, ...(d.chain || {}) }; s.cases = d.cases || {}; s.net = { ...b.net, ...(d.net || {}) };
   if ((d.v || 1) < 3){
     for (const k in s.owned) if (k.startsWith('hat:phones')){ delete s.owned[k]; s.crystals += 160; }
     s.foxes.forEach((f, i) => { if (f.look.hat && f.look.hat.startsWith('hat:phones')) f.look.hat = null; if (f.kid === undefined) f.kid = i > 0; });
@@ -386,7 +402,7 @@ function migrate(d){
 }
 let S = defaultSave();
 try { const r = localStorage.getItem(SAVE_KEY); if (r) S = migrate(JSON.parse(r)); } catch(e){}
-function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} }
+function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} netSync(); }
 const exportCode = () => btoa(unescape(encodeURIComponent(JSON.stringify(S))));
 const importCode = c => migrate(JSON.parse(decodeURIComponent(escape(atob(c.trim())))));
 
@@ -587,6 +603,7 @@ function show(id){
   if (id === 'house') renderHouse();
   if (id === 'hunt') renderHunt();
   if (id === 'cases') renderCases();
+  if (id === 'together') renderTogether();
   if (id === 'map') renderMap();
   if (id === 'levels') renderLevels();
   if (id === 'family') renderFamily();
@@ -656,6 +673,7 @@ function uiLoop(now){
   if (curScreen === 'home') drawDen(animT);
   if (curScreen === 'house' && roomC){ drawRoom(roomC.ctx, roomC.w, roomC.h, animT); }
   if (curScreen === 'case' && caseC) drawCase(animT);
+  if (curScreen === 'together' && pvC && NET.partner && document.getElementById('pv')) drawRoom(pvC.ctx, pvC.w, pvC.h, animT, null, null, NET.partner);
   if (curScreen === 'wardrobe' && wprevC){ const { ctx, w, h } = wprevC; ctx.clearRect(0, 0, w, h);
     const f = S.foxes[wFox]; if (f){ const s = Math.min(w / 150, h / 110); ctx.fillStyle = 'rgba(0,0,0,.1)'; ctx.beginPath(); ctx.ellipse(w / 2 + 4 * s, h - 14, 60 * s, 6, 0, 0, 7); ctx.fill();
       drawFox(ctx, w / 2 + 8 * s, h - 14, s, { look: f.look, t: animT, tail: Math.sin(animT * 2) * .12, breath: Math.sin(animT * 2.2), blink: (animT % 4) < .13 }); } }
@@ -857,6 +875,7 @@ function runLevel(wi, li){
   const tot = L.crystals.length;
   // семья бежит следом
   const crew = S.foxes.filter((_, i) => i !== S.active).slice(0, 4);
+  if (S.net.partner && S.net.partner.fox) crew.push({ name: S.net.partner.fox.name, look: S.net.partner.fox.look, kid: false });
   const hist = [], SPACE = 38;
   const rec = () => { const l = hist[hist.length - 1], d = l ? l.d + Math.hypot(st.x - l.x, st.y - l.y) : 0;
     if (!l || d - l.d > 2) hist.push({ x: st.x, y: st.y, air: !st.ground, ph: st.ph, d }); if (hist.length > 500) hist.shift(); };
@@ -1109,8 +1128,9 @@ function drawHouseDecor(ctx, hx, gy, t){
   if (L >= 10){ ctx.save(); ctx.translate(hx + 10, gy - 140); ctx.rotate(Math.sin(t) * .2); ctx.shadowColor = '#ffd34d'; ctx.shadowBlur = 14; ctx.fillStyle = '#ffd34d'; starPath(ctx, 0, 0, 11); ctx.fill(); ctx.restore(); }
 }
 
-function drawRoom(ctx, w, h, t, prevSlot, prevIdx){
-  const get = sl => (sl === prevSlot && prevIdx != null) ? FURN[sl][prevIdx] : furnGet(sl);
+function drawRoom(ctx, w, h, t, prevSlot, prevIdx, D){
+  const H = D ? (D.house || { lvl:1, furn:{} }) : S.house, FX = D ? (D.foxes || []) : S.foxes;
+  const get = sl => { if (sl === prevSlot && prevIdx != null) return FURN[sl][prevIdx]; const id = (H.furn || {})[sl]; return id && FURN[sl] ? FURN[sl][+id.split(':')[2]] : null; };
   ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#5a3e2b'; ctx.fillRect(0, 0, w, h);
   ctx.save(); ctx.beginPath(); ctx.moveTo(12, h); ctx.lineTo(12, h * .42); ctx.quadraticCurveTo(12, 8, w / 2, 8); ctx.quadraticCurveTo(w - 12, 8, w - 12, h * .42); ctx.lineTo(w - 12, h); ctx.closePath(); ctx.clip();
   const wp = get('wallp') || FURN.wallp[0]; ctx.fillStyle = wp[2]; ctx.fillRect(0, 0, w, h);
@@ -1139,8 +1159,8 @@ function drawRoom(ctx, w, h, t, prevSlot, prevIdx){
   const pl = get('plant'); if (pl) emo(ctx, pl[2], w * .1, fy - 6, 46);
   const toy = get('toy'); if (toy) emo(ctx, toy[2], w * .28, fy + 22, 30);
   const tr = get('treat'); if (tr){ ctx.fillStyle = '#8a5a35'; ctx.fillRect(w * .6 - 20, fy + 4, 40, 6); ctx.fillRect(w * .6 - 16, fy + 10, 4, 18); ctx.fillRect(w * .6 + 12, fy + 10, 4, 18); emo(ctx, tr[2], w * .6, fy - 8, 24); }
-  const n = S.foxes.length;
-  S.foxes.forEach((f, i) => { const x = w * (.3 + (i + .5) / Math.max(n, 1) * .4) + 10, sc = f.kid ? .32 : .5;
+  const n = FX.length;
+  FX.forEach((f, i) => { const x = w * (.3 + (i + .5) / Math.max(n, 1) * .4) + 10, sc = f.kid ? .32 : .5;
     drawFox(ctx, x, fy + 46, sc, { look: f.look, dir: i % 2 ? -1 : 1, t, breath: Math.sin(t * 2 + i), tail: Math.sin(t * 2 + i) * .12, blink: ((t + i) % 4) < .13 }); });
   ctx.restore();
 }
@@ -1414,6 +1434,158 @@ $('#c-solve').onclick = () => {
 };
 $('#b-cases').onclick = () => show('cases');
 
+/* =========================================================
+   ВДВОЁМ ПО СЕТИ (Firebase)
+   ========================================================= */
+const NET = { ready:false, err:'', base:null, partnerPid:null, partner:null, players:{}, inbox:{}, coop:{}, heartCd:0 };
+let db = null, netT = null, pvC = null;
+const TS = () => firebase.database.ServerValue.TIMESTAMP;
+const randStr = (n, abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789') => Array.from({ length: n }, () => abc[Math.floor(Math.random() * abc.length)]).join('');
+const COOP = [
+  { k:'crystals', n:400, t:'Вместе соберите 400 кристаллов', r:100 }, { k:'runs', n:6, t:'Вместе пройдите 6 уровней', r:100 },
+  { k:'bugs', n:40, t:'Вместе поймайте 40 бабочек', r:90 }, { k:'tri', n:6, t:'Вместе соберите 6 треугольников ▲', r:110 },
+  { k:'hunts', n:4, t:'Вместе сходите на охоту 4 раза', r:90 }, { k:'cases', n:2, t:'Вместе раскройте 2 дела', r:120 }
+];
+const coopToday = () => COOP[dayNum(todayStr()) % COOP.length];
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function netInit(){
+  if (!FIREBASE_CONFIG) return;
+  try {
+    const B = 'https://www.gstatic.com/firebasejs/10.12.2/';
+    await loadScript(B + 'firebase-app-compat.js'); await loadScript(B + 'firebase-auth-compat.js'); await loadScript(B + 'firebase-database-compat.js');
+    firebase.initializeApp(FIREBASE_CONFIG); await firebase.auth().signInAnonymously();
+    db = firebase.database(); NET.ready = true;
+    if (!S.net.pid){ S.net.pid = randStr(14, 'abcdefghijkmnopqrstuvwxyz23456789'); persist(); }
+    if (S.net.code) attach();
+  } catch(e){ NET.err = 'Нет связи с сервером. Проверь интернет и зайди ещё раз.'; console.warn(e); }
+  refreshNetUI();
+}
+function attach(){
+  if (NET.base) NET.base.off();
+  const base = db.ref('pairs/' + S.net.code); NET.base = base;
+  base.child('players').on('value', snap => {
+    const v = snap.val() || {}; NET.players = v;
+    const other = Object.keys(v).find(k => k !== S.net.pid); NET.partnerPid = other || null; NET.partner = other ? v[other] : null;
+    if (NET.partner){ const f = (NET.partner.foxes || [])[0];
+      S.net.partner = { name: NET.partner.me || 'Любимый', fox: f ? { name: f.name, look: f.look } : null }; saveLocal(); }
+    refreshNetUI(); });
+  base.child('inbox/' + S.net.pid).on('value', snap => { NET.inbox = snap.val() || {}; autoHearts(); refreshNetUI(); });
+  base.child('coop/' + todayStr()).on('value', snap => { NET.coop = snap.val() || {}; refreshNetUI(); });
+  netSync(true);
+  clearInterval(NET.ping); NET.ping = setInterval(() => { if (document.visibilityState === 'visible' && NET.base) NET.base.child('players/' + S.net.pid + '/seen').set(TS()); }, 60000);
+}
+function saveLocal(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} }
+function coopVals(){ ensureTasks(); const o = {}; for (const c of COOP) o[c.k] = Math.max(0, (S.stats[c.k] || 0) - (S.tasks.base[c.k] || 0)); return o; }
+function netSync(now){
+  if (!NET.ready || !S.net.code || !NET.base) return;
+  clearTimeout(netT);
+  netT = setTimeout(() => {
+    const me = { me: S.net.me || '', foxes: S.foxes.map(f => ({ name: f.name, look: f.look, kid: !!f.kid })), house: { lvl: S.house.lvl, furn: S.house.furn },
+      stars: totalStars(), owned: Object.keys(S.owned).filter(k => !k.startsWith('f:')).join(','), seen: TS() };
+    NET.base.child('players/' + S.net.pid).set(me);
+    NET.base.child('saves/' + S.net.pid).set(JSON.stringify(S));
+    NET.base.child('coop/' + todayStr() + '/' + S.net.pid).set(coopVals());
+  }, now ? 50 : 2500);
+}
+function partnerOnline(){ const s = NET.partner && NET.partner.seen; if (!s) return ''; const m = Math.round((Date.now() - s) / 60000);
+  return m < 3 ? '🟢 в сети' : m < 60 ? `был(а) ${m} мин назад` : m < 1440 ? `был(а) ${Math.round(m / 60)} ч назад` : `был(а) ${Math.round(m / 1440)} дн назад`; }
+function send(obj){ if (!NET.partnerPid) return toast('Сначала пусть второй игрок введёт код'); obj.from = S.net.me || 'Любимый'; obj.ts = TS(); NET.base.child('inbox/' + NET.partnerPid).push(obj); }
+function heartsRain(n = 12){ for (let i = 0; i < n; i++){ const h = document.createElement('div'); h.className = 'fly-heart'; h.textContent = pick(['💖','💕','💗','💞']);
+  h.style.left = (10 + Math.random() * 80) + 'vw'; h.style.animationDelay = (Math.random() * .8) + 's'; document.body.appendChild(h); setTimeout(() => h.remove(), 3200); } }
+function autoHearts(){
+  const ids = Object.keys(NET.inbox).filter(k => NET.inbox[k].type === 'heart'); if (!ids.length) return;
+  ids.forEach(k => NET.base.child('inbox/' + S.net.pid + '/' + k).remove());
+  S.crystals += 5 * ids.length; saveLocal(); refreshWallet(); heartsRain();
+  toast(`💖 ${NET.inbox[ids[0]].from} шлёт тебе сердечко! +${5 * ids.length} 💎`);
+}
+function refreshNetUI(){
+  const n = Object.values(NET.inbox).filter(x => x.type !== 'heart').length;
+  const dot = $('#net-dot'); if (dot) dot.hidden = !n;
+  if (curScreen === 'together') renderTogether();
+}
+function askMe(cb){
+  modal(`<div class="big">💞</div><h2>Как тебя зовут?</h2><p>Это имя увидит твоя половинка в подарках и записочках.</p><input id="me-in" maxlength="16" value="${esc(S.net.me || '')}" placeholder="Твоё имя"><div class="btns"><button class="btn main" id="me-ok">Готово</button></div>`,
+    { 'me-ok': () => { const v = $('#me-in').value.trim(); if (!v) return toast('Напиши имя'); S.net.me = v; persist(); closeModal(); cb(); } });
+}
+async function createPair(){
+  const code = randStr(6); await db.ref('pairs/' + code + '/created').set(TS());
+  S.net.code = code; persist(); attach(); renderTogether();
+}
+async function joinPair(){
+  const code = ($('#jn-in').value || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (code.length < 6) return toast('Код из 6 символов');
+  const snap = await db.ref('pairs/' + code).get(); if (!snap.exists()) return toast('Такого кода нет. Проверь буквы');
+  const pl = snap.child('players').val() || {}, ids = Object.keys(pl).filter(k => k !== S.net.pid);
+  const go = () => { S.net.code = code; persist(); closeModal(); attach(); renderTogether(); toast('Вы теперь вместе 💞'); };
+  if (!ids.length) return go();
+  modal(`<div class="big">💞</div><h2>Кто ты?</h2><p>Если ты уже играл(а) раньше на другом телефоне, выбери себя, и прогресс вернётся из облака.</p><div class="sus">
+    ${ids.map(k => `<button data-pid="${k}"><span>🦊</span><div><b>Это я: ${esc(pl[k].me || '?')}</b><small>вернуть мой прогресс</small></div></button>`).join('')}
+    ${ids.length < 2 ? `<button data-pid=""><span>✨</span><div><b>Я новый игрок</b><small>присоединиться к ${esc(pl[ids[0]].me || 'паре')}</small></div></button>` : ''}</div>`);
+  document.querySelectorAll('.sus button').forEach(b => b.onclick = async () => {
+    const pid = b.dataset.pid; if (!pid) return go();
+    const sv = (await db.ref('pairs/' + code + '/saves/' + pid).get()).val();
+    if (sv){ try { const keepNet = { code, pid, me: pl[pid].me }; S = migrate(JSON.parse(sv)); S.net = { ...S.net, ...keepNet }; } catch(e){ return toast('Не получилось прочитать сохранение'); } }
+    else { S.net.pid = pid; S.net.code = code; S.net.me = pl[pid].me; }
+    persist(); closeModal(); attach(); show('home'); toast('Прогресс восстановлен 💖'); });
+}
+function renderTogether(){
+  const box = $('#tg-body');
+  if (!FIREBASE_CONFIG){ box.innerHTML = `<div class="panel"><span class="pt">Онлайн ещё не подключён<small>Нужно один раз настроить сервер. Всё остальное в игре работает как обычно.</small></span></div>`; return; }
+  if (!NET.ready){ box.innerHTML = `<div class="panel"><span class="pt">${NET.err || 'Подключаемся… 💫'}</span></div>`; return; }
+  if (!S.net.code){
+    box.innerHTML = `<p class="note">Свяжите свои игры: один создаёт семейный код, второй вводит его у себя. После этого можно ходить в гости, дарить подарки, писать записочки и выполнять общие задания.</p>
+      <button class="play-btn" id="tg-new">Создать семейный код</button>
+      <div class="panel"><span class="pt">Уже есть код?<small>Введи код, который прислала твоя половинка</small></span></div>
+      <input class="code-in" id="jn-in" maxlength="6" placeholder="Например, K7MP2Q"><button class="play-btn" id="tg-join" style="margin-top:8px">Присоединиться</button>`;
+    const need = f => () => S.net.me ? f() : askMe(f);
+    $('#tg-new').onclick = need(createPair); $('#tg-join').onclick = need(joinPair); return;
+  }
+  const P = NET.partner, inbox = Object.entries(NET.inbox).filter(([, x]) => x.type !== 'heart');
+  const ct = coopToday(), pids = Object.keys(NET.coop).filter(k => k !== 'claimed');
+  const sum = Math.min(ct.n, pids.reduce((a, k) => a + ((NET.coop[k] || {})[ct.k] || 0), 0)), claimed = (NET.coop.claimed || {})[S.net.pid];
+  box.innerHTML = `
+    <div class="panel"><span class="pt">Семейный код: <b class="code">${S.net.code}</b><small>${P ? `Вы вместе: ${esc(S.net.me)} и ${esc(P.me || '')} 💞` : 'Отправь этот код своей половинке, чтобы она присоединилась'}</small></span>${P ? '' : '<button class="sbtn main" id="tg-share">Отправить</button>'}</div>
+    ${P ? `<h3 class="sub3">Норка: ${esc(P.me || 'половинка')} <small class="onl">${partnerOnline()}</small></h3>
+      <canvas id="pv"></canvas>
+      <p class="note" style="margin-top:8px">Домик ${P.house ? P.house.lvl : 1} уровня · ⭐ ${P.stars || 0} · семья: ${(P.foxes || []).map(f => esc(f.name)).join(', ')}</p>
+      <div class="tiles"><button class="tile" id="g-heart"><span class="e">💖</span>Сердечко</button><button class="tile" id="g-cr"><span class="e">💎</span>Кристаллы</button>
+      <button class="tile" id="g-note"><span class="e">💌</span>Записочка</button><button class="tile" id="g-item"><span class="e">🎁</span>Подарить наряд</button></div>` : ''}
+    <h3 class="sub3">Почтовый ящик</h3>
+    ${inbox.length ? inbox.map(([, x]) => `<div class="task"><div class="tt">${x.type === 'cr' ? `💎 ${x.amount} кристаллов` : x.type === 'item' ? `🎁 ${ITEM[x.item] ? ITEM[x.item].name + (ITEM[x.item].slot !== 'fur' ? ' (' + ITEM[x.item].cname + ')' : '') : 'подарок'}` : `💌 ${esc(x.text)}`}<small>от: ${esc(x.from)}</small></div></div>`).join('') + '<button class="play-btn" id="tg-claim">Забрать всё</button>'
+      : '<div class="task"><div class="tt">Пока пусто<small>Здесь появятся подарки и записочки</small></div></div>'}
+    <h3 class="sub3">Общее задание дня</h3>
+    <div class="task${claimed ? ' ok' : ''}"><div class="tt">${ct.t}<small>${claimed ? 'Награда получена ✅' : `${sum}/${ct.n} · каждому ${ct.r} 💎`}</small><div class="pb"><i style="width:${sum / ct.n * 100}%"></i></div></div>${!claimed && sum >= ct.n ? '<button class="sbtn main" id="tg-coop">Забрать</button>' : ''}</div>
+    ${(S.net.notes || []).length ? `<h3 class="sub3">Записочки</h3>` + S.net.notes.slice().reverse().map(n => `<div class="task"><div class="tt">💌 ${esc(n.text)}<small>от: ${esc(n.from)}</small></div></div>`).join('') : ''}`;
+  if (!P) $('#tg-share').onclick = async () => { const txt = `Давай играть в Лисью тропу вместе! 🦊 Открой «Вдвоём» и введи код: ${S.net.code}`;
+    try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); toast('Скопировано, отправь в мессенджере'); } } catch(e){} };
+  if (P){
+    pvC = setupCanvas($('#pv'));
+    $('#g-heart').onclick = () => { if (Date.now() < NET.heartCd) return toast('Сердечко уже летит, подожди минутку 💖'); NET.heartCd = Date.now() + 60000; send({ type:'heart' }); heartsRain(6); toast('Сердечко отправлено 💖'); };
+    $('#g-cr').onclick = () => modal(`<div class="big">💎</div><h2>Подарить кристаллы</h2><p>У тебя ${S.crystals} 💎</p><div class="btns">${[20, 50, 100, 300].map(a => `<button class="btn alt" data-a="${a}">${a}</button>`).join('')}</div><div class="btns" style="margin-top:10px"><button class="btn alt" id="gc-x">Отмена</button></div>`, { 'gc-x': closeModal });
+    $('#g-cr').addEventListener('click', () => document.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = +b.dataset.a;
+      if (S.crystals < a) return toast('Не хватает кристаллов'); S.crystals -= a; persist(); refreshWallet(); send({ type:'cr', amount:a }); closeModal(); toast(`Подарено ${a} 💎`); }));
+    $('#g-note').onclick = () => { modal(`<div class="big">💌</div><h2>Записочка</h2><p>Нажми на слова или напиши своё.</p>
+      <div class="chips" style="flex-wrap:wrap">${PETS.map(p => `<button class="chip" data-w="${p}">${p}</button>`).join('')}${['я тебя люблю','скучаю','ты лучшая','обнимаю','целую 😘','ты моё счастье'].map(p => `<button class="chip" data-w="${p}">${p}</button>`).join('')}</div>
+      <textarea id="nt" maxlength="140" placeholder="Твоя записочка"></textarea><div class="btns"><button class="btn alt" id="nt-x">Отмена</button><button class="btn main" id="nt-ok">Отправить</button></div>`,
+      { 'nt-x': closeModal, 'nt-ok': () => { const v = $('#nt').value.trim(); if (!v) return toast('Напиши хоть пару слов'); send({ type:'note', text:v }); closeModal(); toast('Записочка отправлена 💌'); } });
+      document.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const t = $('#nt'); t.value = (t.value ? t.value + (/[.!?]$/.test(t.value) ? ' ' : ', ') + b.dataset.w.toLowerCase() : b.dataset.w); }); };
+    $('#g-item').onclick = () => { const has = new Set((P.owned || '').split(',')), list = CATALOG.filter(i => !i.gift && i.price > 0 && !has.has(i.id));
+      modal(`<h2>Подарить наряд</h2><p>Ты платишь, наряд получает ${esc(P.me || 'половинка')}. Здесь только то, чего у неё ещё нет.</p><div class="items" id="gi-list" style="max-height:50vh;overflow:auto;margin:10px 0"></div><div class="btns"><button class="btn alt" id="gi-x">Закрыть</button></div>`, { 'gi-x': closeModal });
+      const gl = $('#gi-list'); list.forEach(it => { const el = document.createElement('button'); el.className = 'item';
+        el.innerHTML = `<canvas></canvas><span class="in">${it.name}</span><span class="ip">${it.price} 💎</span>`; gl.appendChild(el);
+        renderFoxTo(el.querySelector('canvas'), { fur: it.slot === 'fur' ? it.id : 'fur:ryzh', [it.slot]: it.id }, it.slot === 'fur' ? 'full' : it.slot);
+        el.onclick = () => { if (S.crystals < it.price) return toast(`Нужно ещё ${it.price - S.crystals} 💎`); S.crystals -= it.price; S.stats.buys++; persist(); refreshWallet();
+          send({ type:'item', item: it.id }); closeModal(); toast('Подарок отправлен 🎁'); }; }); };
+  }
+  if (inbox.length) $('#tg-claim').onclick = () => { let cr = 0, items = [];
+    inbox.forEach(([k, x]) => { if (x.type === 'cr') cr += x.amount || 0; if (x.type === 'item' && ITEM[x.item]){ S.owned[x.item] = true; items.push(ITEM[x.item].name); }
+      if (x.type === 'note'){ S.net.notes = [...(S.net.notes || []), { text: x.text, from: x.from }].slice(-30); }
+      NET.base.child('inbox/' + S.net.pid + '/' + k).remove(); });
+    S.crystals += cr; persist(); refreshWallet(); heartsRain(8);
+    modal(`<div class="big">📬</div><h2>Почта!</h2>${cr ? `<p class="earn">+${cr} 💎</p>` : ''}${items.length ? `<p class="hl">Новые наряды: ${items.join(', ')}. Они уже в гардеробе!</p>` : ''}<p class="love">${love()}</p><div class="btns"><button class="btn main" id="ml-ok">Спасибо!</button></div>`, { 'ml-ok': closeModal }); };
+  if (!claimed && sum >= ct.n) $('#tg-coop').onclick = () => { S.crystals += ct.r; persist(); refreshWallet(); NET.base.child('coop/' + todayStr() + '/claimed/' + S.net.pid).set(true); toast(`+${ct.r} 💎 · Вместе вы сила 💞`); };
+}
+$('#b-together').onclick = () => show('together');
+
 /* ---------- старт ---------- */
 function boot(){
   if (!S.foxes.length){
@@ -1430,6 +1602,7 @@ function boot(){
   }
 }
 boot();
+netInit();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
